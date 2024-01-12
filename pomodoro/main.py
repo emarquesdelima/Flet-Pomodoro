@@ -24,112 +24,78 @@ def main(page: Page):
 
     #     return pomodoro_settings
 
-    def reset_settings(e):
-        focus_period.value = 30
-        short_break.value = 10
-        long_break.value = 20
-        # retrieve_settings()
-        page.update()
+    # def reset_settings(e):
+    #     focus_period.value = 30
+    #     short_break.value = 10
+    #     long_break.value = 20
+    #     retrieve_settings()
+    #     page.update()
 
-    focus_period = TextField(
-        value=30,
-        label='Focus Period',
-        color='gray',
-        # border_color='transparent',
-        suffix_text='min',
-        # on_change=retrieve_settings,
-        hint_text='Time in minutes',
-        hint_style=TextStyle(
-            size=11,
-            color='gray'
-        )
-    )
-
-    short_break = TextField(
-        value=10,
-        label='Short Break',
-        color='gray',
-        # border_color='transparent',
-        suffix_text='min',
-        # on_change=retrieve_settings,
-        hint_text='Time in minutes',
-        hint_style=TextStyle(
-            size=11,
-            color='gray'
-        )
-    )
-
-    long_break = TextField(
-        value=20,
-        label='Long Break',
-        color='gray',
-        # border_color='transparent',
-        suffix_text='min',
-        # on_change=retrieve_settings,
-        hint_text='Time in minutes',
-        hint_style=TextStyle(
-            size=11,
-            color='gray'
-        )
-    )
-
-    btn_reset_settings = OutlinedButton(
-        text='Reset Settings',
-        on_click=reset_settings
-    )
-
-    settings_container = Container(
-        alignment=alignment.center,
-        margin=20,
-        content=Column(
-            # alignment=MainAxisAlignment.SPACE_BETWEEN,
-            controls=[
-                focus_period,
-                short_break,
-                long_break,
-                btn_reset_settings
-            ],
-        ),
-
-    )
-
-    settings = Tab(
-        text='Setings',
-        content=settings_container,
-    )
-
-    # Pomodoro Assets
-    # focus_tab = Tab(
-    #     text='Focus',
-    #     content=PomodoroModule(focus_period.value)
-    # )
-
-    # short_break_tab = Tab(
-    #     text='Short Break'
-    # )
-
-    # long_break_tab = Tab(
-    #     text='Long Break'
-    # )
-
-    # pomodoro_tabs = Tabs(
-    #     tab_alignment=TabAlignment.CENTER,
-    #     indicator_tab_size=True,
-    #     animation_duration=300,
-    #     expand=1,
-    #     tabs=[
-    #         focus_tab,
-    #         short_break_tab,
-    #         long_break_tab
-    #     ]
-    # )
-
-    # pomodoro = Tab(
-    #     text='Pomodoro',
-    #     content=Container(
-    #         alignment=alignment.top_center,
-    #         content=pomodoro_tabs,
+    # focus_period = TextField(
+    #     value=30,
+    #     label='Focus Period',
+    #     color='gray',
+    #     # border_color='transparent',
+    #     suffix_text='min',
+    #     # on_change=retrieve_settings,
+    #     hint_text='Time in minutes',
+    #     hint_style=TextStyle(
+    #         size=11,
+    #         color='gray'
     #     )
+    # )
+
+    # short_break = TextField(
+    #     value=10,
+    #     label='Short Break',
+    #     color='gray',
+    #     # border_color='transparent',
+    #     suffix_text='min',
+    #     # on_change=retrieve_settings,
+    #     hint_text='Time in minutes',
+    #     hint_style=TextStyle(
+    #         size=11,
+    #         color='gray'
+    #     )
+    # )
+
+    # long_break = TextField(
+    #     value=20,
+    #     label='Long Break',
+    #     color='gray',
+    #     # border_color='transparent',
+    #     suffix_text='min',
+    #     # on_change=retrieve_settings,
+    #     hint_text='Time in minutes',
+    #     hint_style=TextStyle(
+    #         size=11,
+    #         color='gray'
+    #     )
+    # )
+
+    # btn_reset_settings = OutlinedButton(
+    #     text='Reset Settings',
+    #     on_click=reset_settings
+    # )
+
+    # settings_container = Container(
+    #     alignment=alignment.center,
+    #     margin=20,
+    #     content=Column(
+    #         # alignment=MainAxisAlignment.SPACE_BETWEEN,
+    #         controls=[
+    #             focus_period,
+    #             short_break,
+    #             long_break,
+    #             btn_reset_settings
+    #         ],
+    #     ),
+
+    # )
+
+    # settings = Tab(
+    #     text='Setings',
+    #     content=settings_container,
     # )
 
     # Aplication
@@ -144,12 +110,20 @@ def main(page: Page):
         style=TextThemeStyle.DISPLAY_MEDIUM,
     )
 
-    settings_dict = {
-        'focus_period': focus_period.value,
-        'short_break': short_break.value,
-        'long_break': long_break.value
-    }
+    # settings_dict = {
+    #     'focus_period': focus_period.value,
+    #     'short_break': short_break.value,
+    #     'long_break': long_break.value
+    # }
 
+    # print('Calling into the variable')
+    # pomodoro_module = PomodoroModule(page)
+
+    # pomodoro_settings = pomodoro_module.SettingsDisplay()
+
+    # pomodoro_timer = pomodoro_module.PomodoroTimer()
+
+    print('Calling into the main body')
     main_body = Tabs(
         tab_alignment=TabAlignment.CENTER,
         indicator_tab_size=True,
@@ -157,14 +131,22 @@ def main(page: Page):
         animation_duration=300,
         expand=True,
         tabs=[
+            # Tab(
+            #     text='Pomodoro',
+            #     content=pomodoro_timer
+            # ),
+            # Tab(
+            #     text='Settings',
+            #     content=pomodoro_settings
+            # ),
             Tab(
-                text='Pomodoro',
-                content=PomodoroModule(settings_dict)
-            ),
-            settings
+                text='Teste',
+                content=PomodoroModule(page)
+            )
         ]
     )
 
+    print('before page.add')
     page.add(
         header,
         divider,
