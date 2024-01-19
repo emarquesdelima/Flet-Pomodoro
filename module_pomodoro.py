@@ -7,19 +7,24 @@ import inspect
 '''
 To do list:
     - If the timer is running and you change the phase the start/stop button doesn't update value as the timer stop when you change phase
-    - Need to implement the settings properly
+    - Need to implement the entire settings functionality properly
+        - Need to create input validation function
+        - Need to create apply settings function
 '''
 
 
 class PomodoroModule(UserControl):
+    call_depth = 0
+
     def __init__(self, page, debug: bool = False):
-        print('\nStarting PomodoroModule__________________________')
+        print('\n___Starting PomodoroModule__________________________')
         super().__init__()
         self.page = page
         self.debug = debug
+        self.verbose()
 
         # Logic Itens
-        self.focus_time = 3 * 60
+        self.focus_time = 30 * 60
         self.short_break_time = 10 * 60
         self.long_break_time = 20 * 60
         self.current_phase = 0
@@ -44,7 +49,7 @@ class PomodoroModule(UserControl):
         )
         self.settings_container = BottomSheet()
         self.open_settings_button = IconButton(icon=icons.SETTINGS)
-        self.close_settings_button = OutlinedButton()
+        self.close_settings_button = IconButton()
 
         # UI Itens - Pomodoro Timer
         self.display_mins = Text(f'{divmod(self.current_counter, 60)[0]:02d}')
@@ -68,18 +73,33 @@ class PomodoroModule(UserControl):
         self.final_timer_container = Column()
 
     # Functions - Debug Tools
-
     def verbose(self, observations=None):
+        """
+        Prints the name of the function that called this method, with indentation based on call depth.
+
+        Parameters:
+        observations (str, optional): Additional observations or messages to include in the debug output.
+        """
         if self.debug:
+            # Increment call depth
+            PomodoroModule.call_depth += 1
+
             frame = inspect.currentframe()
             caller_frame = frame.f_back
             function_name = caller_frame.f_code.co_name
 
-            verbose_text = f'Running -> {function_name} '
+            # Create indentation based on call depth
+            indent = ' ' * 4 * (PomodoroModule.call_depth - 1)
+            verbose_text = f'{indent} -> {function_name}'
+
+            # Add observations if present
             if observations:
-                print(f'{verbose_text} | {observations}...')
-            else:
-                print(f'{verbose_text}...')
+                verbose_text = f'{verbose_text} | {observations}...'
+
+            print(verbose_text)
+
+            # Decrement call depth after the function call is done
+            PomodoroModule.call_depth -= 1
 
     def update_time(self):
         if self.debug:
@@ -173,8 +193,13 @@ class PomodoroModule(UserControl):
         while self.update_ui:
             if self.is_running:
                 if self.current_counter > 0:
+
                     self.current_counter -= 1
                 else:
+                    if self.phase_cycle[self.current_phase][0] == 'Focus':
+                        self.focus_counter += 1
+                        self.verbose(
+                            f'Focus Period Complete! -> Current Focus Streak [{self.focus_counter}]')
                     self.switch_phase()
                 self.update_timer_display()
             time.sleep(self.update_time())
@@ -220,6 +245,8 @@ class PomodoroModule(UserControl):
                     self.update_button_states()
                     self.update_timer_display()
                     self.is_running = False
+                    self.start_stop_button.text = 'Start'
+                    self.start_stop_button.update()
                     break
 
         # Determine which button was clicked and set the phase accordingly
@@ -233,8 +260,12 @@ class PomodoroModule(UserControl):
             self.verbose('Unknown button clicked')
 
     # Functions - Build
+
     def SettingsDisplay(self):
+        self.verbose()
+
         def close_settings(e):
+            self.verbose()
             self.settings_container.open = False
             self.settings_container.update()
 
@@ -264,6 +295,8 @@ class PomodoroModule(UserControl):
         )
 
     def PomodoroDisplay(self):
+        self.verbose()
+
         def show_settings(e):
             self.verbose()
             self.settings_container.open = True
@@ -334,6 +367,7 @@ class PomodoroModule(UserControl):
         return final_timer_display()
 
     def build(self):
+        self.verbose()
         self.SettingsDisplay()
         self.page.overlay.append(self.settings_container)
         return self.PomodoroDisplay()
@@ -344,9 +378,11 @@ def main(page: Page):
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
 
+    print('\n\n\n\n__________Instatiating Pomodoro Module__________')
     pomodoro = PomodoroModule(page, debug=True)
 
     # page.add(PomodoroModule(debug=True))
+    print('\n__________Adding module to page__________')
     page.add(pomodoro)
 
 
