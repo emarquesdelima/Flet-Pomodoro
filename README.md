@@ -14,7 +14,7 @@ This application is a dynamic task tracker integrated with a built-in Pomodoro t
 ## Installation and Setup
 To run the application, ensure you have Python installed on your system. Follow these steps:
 1. Clone the repository to your local machine.
-2. Install the required dependencies, if any (List any specific libraries or frameworks that need to be installed).
+2. Install the required dependencies.
 3. Run `main.py` to start the application.
 
 ## Usage
