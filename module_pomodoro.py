@@ -49,6 +49,7 @@ class PomodoroModule(UserControl):
         self.settings_container = BottomSheet()
         self.open_settings_button = IconButton(icon=icons.SETTINGS)
         self.close_settings_button = IconButton()
+        self.validation_banner = Banner()
 
         # UI Itens - Pomodoro Timer
         self.display_mins = Text(f'{divmod(self.current_counter, 60)[0]:02d}')
@@ -71,9 +72,16 @@ class PomodoroModule(UserControl):
         self.start_stop_settings_container = Row()
         self.final_timer_container = Column()
 
+        self.button_style = ButtonStyle(
+            shape=RoundedRectangleBorder(radius=5)
+        )
+
         self.print_attributes()
 
+    # Cosmetics
+
     # Functions - Debug Tools
+
     def verbose(self, observations=None):
         if self.debug:
             frame = inspect.currentframe()
@@ -152,10 +160,11 @@ class PomodoroModule(UserControl):
         self.focus_period_field.value = 30
         self.short_break_field.value = 10
         self.long_break_field.value = 20
+        self.cycle_lenght_field.value = 4
         self.focus_period_field.update()
         self.short_break_field.update()
         self.long_break_field.update()
-        # self.cycle_generator()
+        self.cycle_lenght_field.update()
 
     def reset_timer(self):
         self.verbose()
@@ -182,8 +191,38 @@ class PomodoroModule(UserControl):
         self.settings_container.open = False
         self.settings_container.update()
 
-    def validate_input(self):
-        raise NotImplemented
+    def validate_input(self, e):
+        self.verbose()
+
+        def try_convert_to_int(item):
+            try:
+                return int(item)
+            except:
+                return False
+
+        field_value_list = [
+            self.focus_period_field.value,
+            self.short_break_field.value,
+            self.long_break_field.value,
+            self.cycle_lenght_field.value
+        ]
+        all_integers = [try_convert_to_int(item) for item in field_value_list]
+
+        self.verbose(f'Items list -> {field_value_list}')
+        self.verbose(f'Check if all integers -> {all_integers}')
+
+        if False in all_integers:
+            self.verbose('Invalid Input')
+            self.page.banner.open = True
+            self.apply_setting_button.disabled = True
+            self.apply_setting_button.update()
+            self.page.banner.update()
+        else:
+            self.verbose('Valid Input')
+            self.page.banner.open = False
+            self.apply_setting_button.disabled = False
+            self.apply_setting_button.update()
+            self.page.banner.update()
 
     # Functions - Pomodoro Timer
 
@@ -279,6 +318,11 @@ class PomodoroModule(UserControl):
     def SettingsDisplay(self):
         self.verbose()
 
+        def close_banner(e):
+            self.page.banner.open = False
+            self.page.update()
+
+        # Creating close settings function
         def close_settings(e):
             self.verbose()
             self.settings_container.open = False
@@ -288,13 +332,30 @@ class PomodoroModule(UserControl):
         self.close_settings_button.on_click = close_settings
 
         self.apply_setting_button.on_click = self.apply_settings
+        self.apply_setting_button.style = self.button_style
+
+        self.validation_banner.content = Text(
+            'Only use numbers in the settings field.',
+            color=colors.BLACK)
+        self.validation_banner.actions.append(
+            TextButton("Ignore", on_click=close_banner, style=ButtonStyle(color=colors.RED)))
+        self.validation_banner
+        self.validation_banner.bgcolor = colors.AMBER_100
+        self.validation_banner.leading = Icon(
+            icons.WARNING_AMBER_ROUNDED, color=colors.AMBER, size=40)
 
         self.focus_period_field.label = 'Focus Period'
         self.short_break_field.label = 'Short Break'
         self.long_break_field.label = 'Long Break'
         self.cycle_lenght_field.label = 'Cycle Length'
 
+        self.focus_period_field.on_change = self.validate_input
+        self.short_break_field.on_change = self.validate_input
+        self.long_break_field.on_change = self.validate_input
+        self.cycle_lenght_field.on_change = self.validate_input
+
         self.reset_settings_button.on_click = self.reset_settings
+        self.reset_settings_button.style = self.button_style
 
         self.settings_container.content = Container(
             content=Column(
@@ -328,6 +389,10 @@ class PomodoroModule(UserControl):
             self.set_short_break_button.on_click = self.set_phase_cycle
             self.set_long_break_button.on_click = self.set_phase_cycle
 
+            self.set_focus_button.style = self.button_style
+            self.set_short_break_button.style = self.button_style
+            self.set_long_break_button.style = self.button_style
+
             self.phase_buttons_container.controls.append(
                 self.set_focus_button)
             self.phase_buttons_container.controls.append(
@@ -351,6 +416,7 @@ class PomodoroModule(UserControl):
 
             # Setting Start Stop btn function
             self.start_stop_button.on_click = self.start_stop_timer
+            self.start_stop_button.style = self.button_style
 
             # Setting timer container properties
             self.timer_container.wrap = True
@@ -389,6 +455,7 @@ class PomodoroModule(UserControl):
         return final_timer_display()
 
     def build(self):
+        self.page.banner = self.validation_banner
         self.verbose()
         self.SettingsDisplay()
         self.page.overlay.append(self.settings_container)
@@ -403,7 +470,7 @@ def main(page: Page):
     print('\n\n\n\n__________Instatiating Pomodoro Module__________')
     pomodoro = PomodoroModule(page, debug=True)
 
-    # page.add(PomodoroModule(debug=True))
+    # page.add(PomodoroModule(page, debug=True))
     print('\n__________Adding module to page__________')
     page.add(pomodoro)
 
