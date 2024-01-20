@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 import threading
 import inspect
+import sys
 
 '''
 To do list:
@@ -14,8 +15,6 @@ To do list:
 
 
 class PomodoroModule(UserControl):
-    call_depth = 0
-
     def __init__(self, page, debug: bool = False):
         print('\n___Starting PomodoroModule__________________________')
         super().__init__()
@@ -72,40 +71,44 @@ class PomodoroModule(UserControl):
         self.start_stop_settings_container = Row()
         self.final_timer_container = Column()
 
+        self.print_attributes()
+
     # Functions - Debug Tools
     def verbose(self, observations=None):
-        """
-        Prints the name of the function that called this method, with indentation based on call depth.
-
-        Parameters:
-        observations (str, optional): Additional observations or messages to include in the debug output.
-        """
         if self.debug:
-            # Increment call depth
-            PomodoroModule.call_depth += 1
-
             frame = inspect.currentframe()
             caller_frame = frame.f_back
             function_name = caller_frame.f_code.co_name
 
-            # Create indentation based on call depth
-            indent = ' ' * 4 * (PomodoroModule.call_depth - 1)
-            verbose_text = f'{indent} -> {function_name}'
-
-            # Add observations if present
+            verbose_text = f' -> {function_name} '
             if observations:
-                verbose_text = f'{verbose_text} | {observations}...'
+                verbose_text += f' | {observations}...'
+            else:
+                verbose_text += '...'
 
             print(verbose_text)
-
-            # Decrement call depth after the function call is done
-            PomodoroModule.call_depth -= 1
 
     def update_time(self):
         if self.debug:
             return 0.0001
         else:
             return 1
+
+    def print_attributes(self):
+        """
+        Prints the main attributes of the PomodoroModule for debugging purposes.
+        """
+        print("PomodoroModule Attributes:")
+        print(f"  Focus Time: {self.focus_time} seconds")
+        print(f"  Short Break Time: {self.short_break_time} seconds")
+        print(f"  Long Break Time: {self.long_break_time} seconds")
+        print(f"  Current Phase: {self.current_phase}")
+        print(f"  Cycle Length: {self.cycle_lenght}")
+        print(f"  Phase Cycle: {self.phase_cycle}")
+        print(f"  Current Counter: {self.current_counter}")
+        print(f"  Is Running: {self.is_running}")
+        print(f"  Update UI: {self.update_ui}")
+        print(f"  Focus Counter: {self.focus_counter}")
 
     # Functions - Threading
     def did_mount(self):
@@ -152,12 +155,12 @@ class PomodoroModule(UserControl):
         self.focus_period_field.update()
         self.short_break_field.update()
         self.long_break_field.update()
-        self.cycle_generator()
+        # self.cycle_generator()
 
     def reset_timer(self):
         self.verbose()
         self.current_phase = 0
-        self.current_counter = self.phase_cycle[self.current_phase]
+        self.current_counter = self.phase_cycle[self.current_phase][1]
 
         self.update_timer_display()
 
@@ -165,8 +168,19 @@ class PomodoroModule(UserControl):
         self.start_stop_button.text = 'Start'
         self.start_stop_button.update()
 
-    def apply_setting(self):
-        raise NotImplemented
+    def apply_settings(self, args=None):
+        self.verbose()
+
+        self.focus_time = int(self.focus_period_field.value) * 60
+        self.short_break_time = int(self.short_break_field.value) * 60
+        self.long_break_time = int(self.long_break_field.value) * 60
+        self.cycle_lenght = int(self.cycle_lenght_field.value)
+
+        self.cycle_generator()
+        self.reset_timer()
+
+        self.settings_container.open = False
+        self.settings_container.update()
 
     def validate_input(self):
         raise NotImplemented
@@ -181,7 +195,8 @@ class PomodoroModule(UserControl):
         self.verbose(f'To: {self.is_running}')
 
     def update_timer_display(self):
-        # self.verbose()
+        # self.verbose(
+        #     f'Current counter -> {self.current_counter}')
         self.display_mins.value, self.display_secs.value = divmod(
             self.current_counter, 60)
         self.display_mins.value = f'{self.display_mins.value:02d}'
@@ -269,17 +284,22 @@ class PomodoroModule(UserControl):
             self.settings_container.open = False
             self.settings_container.update()
 
+        self.close_settings_button.icon = icons.CLOSE
+        self.close_settings_button.on_click = close_settings
+
+        self.apply_setting_button.on_click = self.apply_settings
+
         self.focus_period_field.label = 'Focus Period'
         self.short_break_field.label = 'Short Break'
         self.long_break_field.label = 'Long Break'
         self.cycle_lenght_field.label = 'Cycle Length'
 
-        self.close_settings_button.on_click = close_settings
         self.reset_settings_button.on_click = self.reset_settings
 
         self.settings_container.content = Container(
             content=Column(
                 controls=[
+                    self.close_settings_button,
                     self.focus_period_field,
                     self.short_break_field,
                     self.long_break_field,
@@ -322,6 +342,7 @@ class PomodoroModule(UserControl):
             return self.phase_buttons_container
 
         def timer_display():
+            self.verbose()
             # Display Mins properties
             self.display_mins.theme_style = TextThemeStyle.DISPLAY_LARGE
 
@@ -343,6 +364,7 @@ class PomodoroModule(UserControl):
             return self.timer_container
 
         def final_timer_display():
+            self.verbose()
             # Open Setting Button setup
             self.open_settings_button.on_click = show_settings
 
