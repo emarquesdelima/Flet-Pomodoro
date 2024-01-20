@@ -3,5 +3,7 @@
     "editor.defaultFormatter": "ms-python.autopep8",
     "editor.formatOnPaste": true,
     "editor.formatOnSave": true
-  }
+  },
+  "editor.lineHeight": 1.5,
+  "explorer.compactFolders": false
 }
