@@ -68,9 +68,9 @@ class PomodoroModule(UserControl):
             'Long Break'
         )
         self.timer_container = Row()
-        self.phase_buttons_container = Row()
+        self.phase_buttons_container = Column()
         self.start_stop_settings_container = Row()
-        self.final_timer_container = Column()
+        self.final_timer_container = Row()
 
         self.button_style = ButtonStyle(
             shape=RoundedRectangleBorder(radius=5)
@@ -402,7 +402,7 @@ class PomodoroModule(UserControl):
 
             self.phase_buttons_container.wrap = True
             self.phase_buttons_container.alignment = MainAxisAlignment.CENTER
-            self.phase_buttons_container.vertical_alignment = CrossAxisAlignment.CENTER
+            self.phase_buttons_container.horizontal_alignment = CrossAxisAlignment.CENTER
 
             return self.phase_buttons_container
 
@@ -427,7 +427,12 @@ class PomodoroModule(UserControl):
             self.timer_container.controls.append(self.display_mins)
             self.timer_container.controls.append(self.display_secs)
 
-            return self.timer_container
+            return Column(
+                controls=[
+                    self.timer_container,
+                    self.start_stop_settings_container
+                ]
+            )
 
         def final_timer_display():
             self.verbose()
@@ -436,8 +441,8 @@ class PomodoroModule(UserControl):
 
             # Setting container properties
             self.final_timer_container.alignment = MainAxisAlignment.CENTER
-            self.final_timer_container.horizontal_alignment = CrossAxisAlignment.CENTER
-            self.final_timer_container.wrap = True
+            # self.final_timer_container.horizontal_alignment = CrossAxisAlignment.CENTER
+            # self.final_timer_container.wrap = True
 
             self.start_stop_settings_container.controls.append(
                 self.start_stop_button)
@@ -447,8 +452,6 @@ class PomodoroModule(UserControl):
             # Adding Controls
             self.final_timer_container.controls.append(phase_buttons())
             self.final_timer_container.controls.append(timer_display())
-            self.final_timer_container.controls.append(
-                self.start_stop_settings_container)
 
             return self.final_timer_container
 
