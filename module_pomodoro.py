@@ -76,13 +76,16 @@ class PomodoroModule(UserControl):
             shape=RoundedRectangleBorder(radius=5)
         )
 
+        # UI Itens General
+        self.main_container = Container()
+
         self.print_attributes()
 
     # Cosmetics
 
     # Functions - Debug Tools
 
-    def verbose(self, observations=None):
+    def verbose(self, observations=None, same_line=False):
         if self.debug:
             frame = inspect.currentframe()
             caller_frame = frame.f_back
@@ -94,7 +97,11 @@ class PomodoroModule(UserControl):
             else:
                 verbose_text += '...'
 
-            print(verbose_text)
+            if same_line:
+                print(f'\r{verbose_text}', end='', )
+                sys.stdout.flush()
+            else:
+                print(verbose_text)
 
     def update_time(self):
         if self.debug:
@@ -234,8 +241,8 @@ class PomodoroModule(UserControl):
         self.verbose(f'To: {self.is_running}')
 
     def update_timer_display(self):
-        # self.verbose(
-        #     f'Current counter -> {self.current_counter}')
+        self.verbose(
+            f'Current counter -> {self.current_counter}', True)
         self.display_mins.value, self.display_secs.value = divmod(
             self.current_counter, 60)
         self.display_mins.value = f'{self.display_mins.value:02d}'
@@ -318,6 +325,7 @@ class PomodoroModule(UserControl):
     def SettingsDisplay(self):
         self.verbose()
 
+        # Creating functions needed to interact
         def close_banner(e):
             self.page.banner.open = False
             self.page.update()
@@ -328,34 +336,38 @@ class PomodoroModule(UserControl):
             self.settings_container.open = False
             self.settings_container.update()
 
-        self.close_settings_button.icon = icons.CLOSE
-        self.close_settings_button.on_click = close_settings
+        def settings_button_configs():
+            self.close_settings_button.icon = icons.CLOSE
+            self.close_settings_button.on_click = close_settings
 
-        self.apply_setting_button.on_click = self.apply_settings
-        self.apply_setting_button.style = self.button_style
+        def apply_settings_buttons_config():
+            self.apply_setting_button.on_click = self.apply_settings
+            self.apply_setting_button.style = self.button_style
 
-        self.validation_banner.content = Text(
-            'Only use numbers in the settings field.',
-            color=colors.BLACK)
-        self.validation_banner.actions.append(
-            TextButton("Ignore", on_click=close_banner, style=ButtonStyle(color=colors.RED)))
-        self.validation_banner
-        self.validation_banner.bgcolor = colors.AMBER_100
-        self.validation_banner.leading = Icon(
-            icons.WARNING_AMBER_ROUNDED, color=colors.AMBER, size=40)
+        def valdation_banner_config():
+            self.validation_banner.content = Text(
+                'Only use numbers in the settings field.',
+                color=colors.BLACK)
+            self.validation_banner.actions.append(
+                TextButton("Ignore", on_click=close_banner, style=ButtonStyle(color=colors.RED)))
+            self.validation_banner
+            self.validation_banner.bgcolor = colors.AMBER_100
+            self.validation_banner.leading = Icon(
+                icons.WARNING_AMBER_ROUNDED, color=colors.AMBER, size=40)
 
-        self.focus_period_field.label = 'Focus Period'
-        self.short_break_field.label = 'Short Break'
-        self.long_break_field.label = 'Long Break'
-        self.cycle_lenght_field.label = 'Cycle Length'
+        def settings_text_fields_config():
+            self.focus_period_field.label = 'Focus Period'
+            self.short_break_field.label = 'Short Break'
+            self.long_break_field.label = 'Long Break'
+            self.cycle_lenght_field.label = 'Cycle Length'
 
-        self.focus_period_field.on_change = self.validate_input
-        self.short_break_field.on_change = self.validate_input
-        self.long_break_field.on_change = self.validate_input
-        self.cycle_lenght_field.on_change = self.validate_input
+            self.focus_period_field.on_change = self.validate_input
+            self.short_break_field.on_change = self.validate_input
+            self.long_break_field.on_change = self.validate_input
+            self.cycle_lenght_field.on_change = self.validate_input
 
-        self.reset_settings_button.on_click = self.reset_settings
-        self.reset_settings_button.style = self.button_style
+            self.reset_settings_button.on_click = self.reset_settings
+            self.reset_settings_button.style = self.button_style
 
         self.settings_container.content = Container(
             content=Column(
