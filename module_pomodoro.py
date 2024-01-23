@@ -46,10 +46,11 @@ class PomodoroModule(UserControl):
         self.apply_setting_button = OutlinedButton(
             'Apply'
         )
-        self.settings_container = BottomSheet()
         self.open_settings_button = IconButton(icon=icons.SETTINGS)
         self.close_settings_button = IconButton()
         self.validation_banner = Banner()
+        self.settings_container = Container()
+        self.settings_bottom_sheet = BottomSheet()
 
         # UI Itens - Pomodoro Timer
         self.display_mins = Text(f'{divmod(self.current_counter, 60)[0]:02d}')
@@ -73,7 +74,13 @@ class PomodoroModule(UserControl):
         self.final_timer_container = Row()
 
         self.button_style = ButtonStyle(
-            shape=RoundedRectangleBorder(radius=5)
+            shape=RoundedRectangleBorder(radius=5),
+            color={
+                MaterialState.HOVERED: colors.WHITE70,
+                MaterialState.DISABLED: colors.WHITE10,
+                MaterialState.DEFAULT: colors.WHITE,
+                MaterialState.SELECTED: colors.RED
+            }
         )
 
         # UI Itens General
@@ -195,8 +202,8 @@ class PomodoroModule(UserControl):
         self.cycle_generator()
         self.reset_timer()
 
-        self.settings_container.open = False
-        self.settings_container.update()
+        self.settings_bottom_sheet.open = False
+        self.settings_bottom_sheet.update()
 
     def validate_input(self, e):
         self.verbose()
@@ -241,8 +248,8 @@ class PomodoroModule(UserControl):
         self.verbose(f'To: {self.is_running}')
 
     def update_timer_display(self):
-        self.verbose(
-            f'Current counter -> {self.current_counter}', True)
+        # self.verbose(
+        #     f'Current counter -> {self.current_counter}', True)
         self.display_mins.value, self.display_secs.value = divmod(
             self.current_counter, 60)
         self.display_mins.value = f'{self.display_mins.value:02d}'
@@ -327,24 +334,28 @@ class PomodoroModule(UserControl):
 
         # Creating functions needed to interact
         def close_banner(e):
+            self.verbose()
             self.page.banner.open = False
             self.page.update()
 
         # Creating close settings function
         def close_settings(e):
             self.verbose()
-            self.settings_container.open = False
-            self.settings_container.update()
+            self.settings_bottom_sheet.open = False
+            self.settings_bottom_sheet.update()
 
         def settings_button_configs():
+            self.verbose()
             self.close_settings_button.icon = icons.CLOSE
             self.close_settings_button.on_click = close_settings
 
         def apply_settings_buttons_config():
+            self.verbose()
             self.apply_setting_button.on_click = self.apply_settings
             self.apply_setting_button.style = self.button_style
 
         def valdation_banner_config():
+            self.verbose()
             self.validation_banner.content = Text(
                 'Only use numbers in the settings field.',
                 color=colors.BLACK)
@@ -356,6 +367,7 @@ class PomodoroModule(UserControl):
                 icons.WARNING_AMBER_ROUNDED, color=colors.AMBER, size=40)
 
         def settings_text_fields_config():
+            self.verbose()
             self.focus_period_field.label = 'Focus Period'
             self.short_break_field.label = 'Short Break'
             self.long_break_field.label = 'Long Break'
@@ -369,31 +381,65 @@ class PomodoroModule(UserControl):
             self.reset_settings_button.on_click = self.reset_settings
             self.reset_settings_button.style = self.button_style
 
-        self.settings_container.content = Container(
-            content=Column(
-                controls=[
-                    self.close_settings_button,
-                    self.focus_period_field,
-                    self.short_break_field,
-                    self.long_break_field,
-                    self.cycle_lenght_field,
-                    Row(
-                        controls=[
-                            self.apply_setting_button,
-                            self.reset_settings_button
-                        ]
-                    )
-                ]
-            )
-        )
+        def assemble_settings_container():
+            self.verbose()
+
+            settings_column = Column()
+            close_settings_row = Row()
+            settings_buttons_row = Row()
+
+            # Settings column configuration
+            settings_column.alignment = MainAxisAlignment.START
+            settings_column.horizontal_alignment = CrossAxisAlignment.CENTER
+            # settings_column.wrap = True
+            settings_column.controls = [
+                close_settings_row,
+                self.focus_period_field,
+                self.short_break_field,
+                self.long_break_field,
+                self.cycle_lenght_field,
+                settings_buttons_row
+            ]
+
+            # Close settings row configuration
+            close_settings_row.alignment = MainAxisAlignment.END
+            close_settings_row.controls = [
+                self.close_settings_button
+            ]
+
+            # Settings button row configurations
+            settings_buttons_row.alignment = MainAxisAlignment.END
+            settings_buttons_row.controls = [
+                self.apply_setting_button,
+                self.reset_settings_button
+            ]
+
+            # Running assets configuration
+            settings_button_configs()
+            apply_settings_buttons_config()
+            valdation_banner_config()
+            settings_text_fields_config()
+
+            # Settings container configuration
+            self.settings_container.content = settings_column
+            self.settings_container.padding = 20
+            self.settings_container.width = 400
+
+            self.settings_bottom_sheet.content = self.settings_container
+            self.settings_bottom_sheet.maintain_bottom_view_insets_padding = True
+            self.settings_bottom_sheet.use_safe_area = True
+
+            return self.settings_bottom_sheet
+
+        return assemble_settings_container()
 
     def PomodoroDisplay(self):
         self.verbose()
 
         def show_settings(e):
             self.verbose()
-            self.settings_container.open = True
-            self.settings_container.update()
+            self.settings_bottom_sheet.open = True
+            self.settings_bottom_sheet.update()
 
         def phase_buttons():
             self.verbose()
@@ -413,7 +459,7 @@ class PomodoroModule(UserControl):
                 self.set_long_break_button)
 
             self.phase_buttons_container.wrap = True
-            self.phase_buttons_container.alignment = MainAxisAlignment.CENTER
+            self.phase_buttons_container.alignment = MainAxisAlignment.SPACE_EVENLY
             self.phase_buttons_container.horizontal_alignment = CrossAxisAlignment.CENTER
 
             return self.phase_buttons_container
@@ -424,7 +470,7 @@ class PomodoroModule(UserControl):
             self.display_mins.theme_style = TextThemeStyle.DISPLAY_LARGE
 
             # Display Secs properties
-            self.display_secs.theme_style = TextThemeStyle.DISPLAY_MEDIUM
+            self.display_secs.theme_style = TextThemeStyle.DISPLAY_SMALL
 
             # Setting Start Stop btn function
             self.start_stop_button.on_click = self.start_stop_timer
@@ -433,23 +479,29 @@ class PomodoroModule(UserControl):
             # Setting timer container properties
             self.timer_container.wrap = True
             self.timer_container.alignment = MainAxisAlignment.CENTER
-            self.timer_container.vertical_alignment = CrossAxisAlignment.CENTER
+            self.timer_container.vertical_alignment = CrossAxisAlignment.BASELINE
 
             # Adding controls
             self.timer_container.controls.append(self.display_mins)
             self.timer_container.controls.append(self.display_secs)
 
-            return Column(
+            column = Column(
                 controls=[
                     self.timer_container,
                     self.start_stop_settings_container
                 ]
             )
 
+            column.alignment = MainAxisAlignment.SPACE_EVENLY
+
+            return column
+
         def final_timer_display():
             self.verbose()
             # Open Setting Button setup
             self.open_settings_button.on_click = show_settings
+
+            self.phase_buttons_container.alignment = MainAxisAlignment.CENTER
 
             # Setting container properties
             self.final_timer_container.alignment = MainAxisAlignment.CENTER
@@ -465,7 +517,32 @@ class PomodoroModule(UserControl):
             self.final_timer_container.controls.append(phase_buttons())
             self.final_timer_container.controls.append(timer_display())
 
-            return self.final_timer_container
+            col = Column()
+            module_name = Text('Pomodoro')
+
+            module_name.theme_style = TextThemeStyle.LABEL_SMALL
+            module_name.text_align = TextAlign.CENTER
+
+            Divider
+
+            col.controls = [
+                module_name,
+                Divider(height=2),
+                self.final_timer_container
+            ]
+            col.horizontal_alignment = 'center'
+
+            self.main_container.content = col
+
+            self.main_container.alignment = alignment.center
+            self.main_container.bgcolor = colors.BLACK54
+            self.main_container.height = 200
+            self.main_container.width = 300
+            self.main_container.padding = 20
+            self.main_container.border_radius = 30
+            # self.main_container.blend_mode = BlendMode.PLUS
+
+            return self.main_container
 
         return final_timer_display()
 
@@ -473,7 +550,7 @@ class PomodoroModule(UserControl):
         self.page.banner = self.validation_banner
         self.verbose()
         self.SettingsDisplay()
-        self.page.overlay.append(self.settings_container)
+        self.page.overlay.append(self.settings_bottom_sheet)
         return self.PomodoroDisplay()
 
 
@@ -481,6 +558,7 @@ def main(page: Page):
     page.title = 'Pomodoro Module'
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
+    # page.bgcolor = colors.WHITE
 
     print('\n\n\n\n__________Instatiating Pomodoro Module__________')
     pomodoro = PomodoroModule(page, debug=True)
