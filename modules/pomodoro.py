@@ -4,6 +4,7 @@ import time
 import threading
 import inspect
 import sys
+import pygame
 
 '''
 To do list:
@@ -33,6 +34,7 @@ class PomodoroModule(UserControl):
         self.is_running = False
         self.update_ui = True
         self.focus_counter = 0
+        self.cycle_focus_position = 1
 
         # UI Itens - Settings
         self.focus_period_field = TextField(value=int(self.focus_time / 60))
@@ -68,10 +70,13 @@ class PomodoroModule(UserControl):
         self.set_long_break_button = OutlinedButton(
             'Long Break'
         )
+        self.restart_button = IconButton()
         self.timer_container = Row()
         self.phase_buttons_container = Column()
-        self.start_stop_settings_container = Row()
+        self.reset_timer_settings_container = Row()
         self.final_timer_container = Row()
+        self.module_name_phase_cycle = Text(
+            f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}')
 
         self.button_style = ButtonStyle(
             shape=RoundedRectangleBorder(radius=5),
@@ -86,9 +91,11 @@ class PomodoroModule(UserControl):
         # UI Itens General
         self.main_container = Container()
 
-        self.print_attributes()
+        # Sound assets
+        pygame.init()
+        self.sound = pygame.mixer.Sound(r'..\assets\beep beep beep.mp3')
 
-    # Cosmetics
+        self.print_attributes()
 
     # Functions - Debug Tools
 
@@ -145,6 +152,10 @@ class PomodoroModule(UserControl):
         self.verbose()
         self.is_running = False
 
+    # Sound function
+    def play_beep(self):
+        self.sound.play()
+
     # Functions - Settings
     def cycle_generator(self):
         self.verbose(self.cycle_lenght)
@@ -179,11 +190,20 @@ class PomodoroModule(UserControl):
         self.short_break_field.update()
         self.long_break_field.update()
         self.cycle_lenght_field.update()
+        self.validate_input(e)
 
-    def reset_timer(self):
+    def reset_timer(self, full=False):
         self.verbose()
-        self.current_phase = 0
-        self.current_counter = self.phase_cycle[self.current_phase][1]
+
+        if full == 'Yes':
+            self.verbose(full)
+            self.current_phase = 0
+            self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
+            self.current_counter = self.phase_cycle[self.current_phase][1]
+        else:
+            self.verbose(full)
+            self.verbose(self.phase_cycle[self.current_phase])
+            self.current_counter = self.phase_cycle[self.current_phase][1]
 
         self.update_timer_display()
 
@@ -200,10 +220,15 @@ class PomodoroModule(UserControl):
         self.cycle_lenght = int(self.cycle_lenght_field.value)
 
         self.cycle_generator()
-        self.reset_timer()
+        self.reset_timer(full='Yes')
+        self.update_button_states()
 
         self.settings_bottom_sheet.open = False
         self.settings_bottom_sheet.update()
+
+        self.cycle_focus_position = 1
+        self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
+        self.module_name_phase_cycle.update()
 
     def validate_input(self, e):
         self.verbose()
@@ -239,7 +264,6 @@ class PomodoroModule(UserControl):
             self.page.banner.update()
 
     # Functions - Pomodoro Timer
-
     def start_stop_timer(self, e):
         self.verbose(f'From: {self.is_running}')
         self.is_running = not self.is_running
@@ -286,36 +310,61 @@ class PomodoroModule(UserControl):
     def switch_phase(self):
         self.verbose(
             f'From: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
+
         self.current_phase += 1
+
         if self.current_phase < len(self.phase_cycle):
+            if self.phase_cycle[self.current_phase][0] == 'Focus':
+                self.cycle_focus_position += 1
+
+                self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
+                self.module_name_phase_cycle.update()
+
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
             self.verbose(
                 f'To: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
         elif self.current_phase == len(self.phase_cycle):
+            self.cycle_focus_position = 1
             self.current_phase = 0
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
+            self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
+            self.module_name_phase_cycle.update()
             self.verbose(
                 f'Restarting cycle to: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
         self.update()
         self.update_button_states()
+        self.play_beep()
 
     def set_phase_cycle(self, e):
         self.verbose(f'Button clicked: {e.control.text}')
+        # self.verbose(
+        #     f'Set current phase name from: {self.current_phase_name.value}')
+        # self.verbose(f'Set current counter from: {self.current_counter}')
+        # self.verbose(f'Set current phase from: {self.current_phase}')
 
         def set_phase(phase_name):
-            # self.verbose(f'{phase_name}')
+            self.verbose(f'{phase_name}')
             for phase in self.phase_cycle:
                 if phase[0] == phase_name:
                     self.current_phase_name.value = phase_name
                     self.current_counter = phase[1]
+                    self.current_phase = self.phase_cycle.index(phase)
                     self.update_button_states()
                     self.update_timer_display()
                     self.is_running = False
                     self.start_stop_button.text = 'Start'
                     self.start_stop_button.update()
+
+                    self.cycle_focus_position = 1
+                    self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
+                    self.module_name_phase_cycle.update()
                     break
+            # self.verbose(
+            #     f'Set current phase name to: {self.current_phase_name.value}')
+            # self.verbose(f'Set current counter to: {self.current_counter}')
+            # self.verbose(f'Set current phase to: {self.current_phase}')
 
         # Determine which button was clicked and set the phase accordingly
         if e.control.text == 'Focus':
@@ -328,7 +377,6 @@ class PomodoroModule(UserControl):
             self.verbose('Unknown button clicked')
 
     # Functions - Build
-
     def SettingsDisplay(self):
         self.verbose()
 
@@ -371,7 +419,7 @@ class PomodoroModule(UserControl):
             self.focus_period_field.label = 'Focus Period'
             self.short_break_field.label = 'Short Break'
             self.long_break_field.label = 'Long Break'
-            self.cycle_lenght_field.label = 'Cycle Length'
+            self.cycle_lenght_field.label = 'Focus before Long Break'
 
             self.focus_period_field.on_change = self.validate_input
             self.short_break_field.on_change = self.validate_input
@@ -428,6 +476,8 @@ class PomodoroModule(UserControl):
             self.settings_bottom_sheet.content = self.settings_container
             self.settings_bottom_sheet.maintain_bottom_view_insets_padding = True
             self.settings_bottom_sheet.use_safe_area = True
+            self.settings_bottom_sheet.is_scroll_controlled = False
+            # self.settings_bottom_sheet.elevation = 10000
 
             return self.settings_bottom_sheet
 
@@ -476,6 +526,10 @@ class PomodoroModule(UserControl):
             self.start_stop_button.on_click = self.start_stop_timer
             self.start_stop_button.style = self.button_style
 
+            # Setting restart button
+            self.restart_button.icon = icons.RESTART_ALT
+            self.restart_button.on_click = self.reset_timer
+
             # Setting timer container properties
             self.timer_container.wrap = True
             self.timer_container.alignment = MainAxisAlignment.CENTER
@@ -488,11 +542,14 @@ class PomodoroModule(UserControl):
             column = Column(
                 controls=[
                     self.timer_container,
-                    self.start_stop_settings_container
+                    self.start_stop_button,
+                    self.reset_timer_settings_container
                 ]
             )
 
             column.alignment = MainAxisAlignment.SPACE_EVENLY
+            column.horizontal_alignment = CrossAxisAlignment.CENTER
+            column.spacing = 150
 
             return column
 
@@ -508,9 +565,12 @@ class PomodoroModule(UserControl):
             # self.final_timer_container.horizontal_alignment = CrossAxisAlignment.CENTER
             # self.final_timer_container.wrap = True
 
-            self.start_stop_settings_container.controls.append(
-                self.start_stop_button)
-            self.start_stop_settings_container.controls.append(
+            self.reset_timer_settings_container.wrap = True
+            # self.reset_timer_settings_container.controls.append(
+            #     self.start_stop_button)
+            self.reset_timer_settings_container.controls.append(
+                self.restart_button)
+            self.reset_timer_settings_container.controls.append(
                 self.open_settings_button)
 
             # Adding Controls
@@ -518,25 +578,26 @@ class PomodoroModule(UserControl):
             self.final_timer_container.controls.append(timer_display())
 
             col = Column()
-            module_name = Text('Pomodoro')
 
-            module_name.theme_style = TextThemeStyle.LABEL_SMALL
-            module_name.text_align = TextAlign.CENTER
+            self.module_name_phase_cycle.theme_style = TextThemeStyle.LABEL_SMALL
+            self.module_name_phase_cycle.text_align = TextAlign.CENTER
 
             Divider
 
             col.controls = [
-                module_name,
+                self.module_name_phase_cycle,
                 Divider(height=2),
                 self.final_timer_container
             ]
             col.horizontal_alignment = 'center'
+            col.spacing = 15
+            col.alignment = 'center'
 
             self.main_container.content = col
 
             self.main_container.alignment = alignment.center
             self.main_container.bgcolor = colors.BLACK54
-            self.main_container.height = 200
+            self.main_container.height = 230
             self.main_container.width = 300
             self.main_container.padding = 20
             self.main_container.border_radius = 30
