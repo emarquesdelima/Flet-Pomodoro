@@ -6,14 +6,6 @@ import inspect
 import sys
 import pygame
 
-'''
-To do list:
-    - If the timer is running and you change the phase the start/stop button doesn't update value as the timer stop when you change phase
-    - Need to implement the entire settings functionality properly
-        - Need to create input validation function
-        - Need to create apply settings function
-'''
-
 
 class PomodoroModule(UserControl):
     def __init__(self, page, debug: bool = False):
@@ -91,6 +83,9 @@ class PomodoroModule(UserControl):
         # UI Itens General
         self.main_container = Container()
 
+        # Observer
+        self.observers = []
+
         # Sound assets
         pygame.init()
         self.sound = pygame.mixer.Sound(r'..\assets\beep beep beep.mp3')
@@ -156,7 +151,23 @@ class PomodoroModule(UserControl):
     def play_beep(self):
         self.sound.play()
 
+    # Functions - Observer
+    def register_observer(self, observer):
+        self.verbose()
+        if observer not in self.observers:
+            self.observers.append(observer)
+
+    def unregister_observer(self, observer):
+        self.verbose()
+        self.observers.remove(observer)
+
+    def notify_observers(self):
+        self.verbose()
+        for observer in self.observers:
+            observer.obs_update(self)
+
     # Functions - Settings
+
     def cycle_generator(self):
         self.verbose(self.cycle_lenght)
         lenght = self.cycle_lenght
@@ -319,6 +330,7 @@ class PomodoroModule(UserControl):
 
                 self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
                 self.module_name_phase_cycle.update()
+                self.notify_observers()
 
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
@@ -435,11 +447,14 @@ class PomodoroModule(UserControl):
             settings_column = Column()
             close_settings_row = Row()
             settings_buttons_row = Row()
+            settings_text = Text('Pomodoro Settings',
+                                 style=TextThemeStyle.LABEL_SMALL)
 
             # Settings column configuration
             settings_column.alignment = MainAxisAlignment.START
             settings_column.horizontal_alignment = CrossAxisAlignment.CENTER
-            # settings_column.wrap = True
+            settings_column.tight = True
+            settings_column.scroll = ScrollMode.ADAPTIVE
             settings_column.controls = [
                 close_settings_row,
                 self.focus_period_field,
@@ -450,8 +465,9 @@ class PomodoroModule(UserControl):
             ]
 
             # Close settings row configuration
-            close_settings_row.alignment = MainAxisAlignment.END
+            close_settings_row.alignment = MainAxisAlignment.SPACE_BETWEEN
             close_settings_row.controls = [
+                settings_text,
                 self.close_settings_button
             ]
 

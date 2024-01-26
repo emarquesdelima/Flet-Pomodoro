@@ -1,4 +1,4 @@
-import pymysql
+import mysql.connector
 import os
 
 host = "emarques.mysql.pythonanywhere-services.com"
@@ -7,8 +7,11 @@ user = "emarques"
 password = os.environ.get('DB_PASSWORD')
 db = "emarques$taskito"
 
-connection = pymysql.connect(host=host, user=user, password=password, db=db)
+# Using mysql.connector to establish a connection
+connection = mysql.connector.connect(
+    host=host, user=user, password=password, database=db)
 
 # Your code here
 
+# Ensure to close the connection
 connection.close()
