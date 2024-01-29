@@ -4,6 +4,7 @@ import time
 import threading
 import inspect
 import sys
+from utility import verbose
 
 
 class PomodoroModule(UserControl):
@@ -12,7 +13,7 @@ class PomodoroModule(UserControl):
         super().__init__()
         self.page = page
         self.debug = debug
-        self.verbose()
+        verbose(debug=self.debug)
 
         # Logic Itens
         self.focus_time = 30 * 60
@@ -94,23 +95,23 @@ class PomodoroModule(UserControl):
 
     # Functions - Debug Tools
 
-    def verbose(self, observations=None, same_line=False):
-        if self.debug:
-            frame = inspect.currentframe()
-            caller_frame = frame.f_back
-            function_name = caller_frame.f_code.co_name
+    # def verbose(self, observations=None, same_line=False):
+    #     if self.debug:
+    #         frame = inspect.currentframe()
+    #         caller_frame = frame.f_back
+    #         function_name = caller_frame.f_code.co_name
 
-            verbose_text = f' -> {function_name} '
-            if observations:
-                verbose_text += f' | {observations}...'
-            else:
-                verbose_text += '...'
+    #         verbose_text = f' -> {function_name} '
+    #         if observations:
+    #             verbose_text += f' | {observations}...'
+    #         else:
+    #             verbose_text += '...'
 
-            if same_line:
-                print(f'\r{verbose_text}', end='', )
-                sys.stdout.flush()
-            else:
-                print(verbose_text)
+    #         if same_line:
+    #             print(f'\r{verbose_text}', end='', )
+    #             sys.stdout.flush()
+    #         else:
+    #             print(verbose_text)
 
     def update_time(self):
         if self.debug:
@@ -136,15 +137,15 @@ class PomodoroModule(UserControl):
 
     # Functions - Threading
     def did_mount(self):
-        self.verbose()
+        verbose(self.debug,)
         self.th = threading.Thread(
             target=self.run_timer, args=(), daemon=True
         )
         self.th.start()
-        self.verbose(self.th)
+        verbose(self.debug, self.th)
 
     def will_unmount(self):
-        self.verbose()
+        verbose(self.debug,)
         self.is_running = False
 
     # Sound function
@@ -153,23 +154,23 @@ class PomodoroModule(UserControl):
 
     # Functions - Observer
     def register_observer(self, observer):
-        self.verbose()
+        verbose(self.debug,)
         if observer not in self.observers:
             self.observers.append(observer)
 
     def unregister_observer(self, observer):
-        self.verbose()
+        verbose(self.debug,)
         self.observers.remove(observer)
 
     def notify_observers(self):
-        self.verbose()
+        verbose(self.debug,)
         for observer in self.observers:
             observer.obs_update(self)
 
     # Functions - Settings
 
     def cycle_generator(self):
-        self.verbose(self.cycle_lenght)
+        verbose(self.debug, self.cycle_lenght)
         lenght = self.cycle_lenght
         phase_cycle = []
 
@@ -185,14 +186,14 @@ class PomodoroModule(UserControl):
                 phase_cycle.append(focus)
                 phase_cycle.append(long_break)
             else:
-                self.verbose('Error: lenght > cycle_lenght')
+                verbose(self.debug, 'Error: lenght > cycle_lenght')
         self.phase_cycle = phase_cycle
-        self.verbose(self.phase_cycle)
+        verbose(self.debug, self.phase_cycle)
 
         return phase_cycle
 
     def reset_settings(self, e):
-        self.verbose()
+        verbose(self.debug,)
         self.focus_period_field.value = 30
         self.short_break_field.value = 10
         self.long_break_field.value = 20
@@ -204,16 +205,16 @@ class PomodoroModule(UserControl):
         self.validate_input(e)
 
     def reset_timer(self, full=False):
-        self.verbose()
+        verbose(self.debug,)
 
         if full == 'Yes':
-            self.verbose(full)
+            verbose(self.debug, full)
             self.current_phase = 0
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
         else:
-            self.verbose(full)
-            self.verbose(self.phase_cycle[self.current_phase])
+            verbose(self.debug, full)
+            verbose(self.debug, self.phase_cycle[self.current_phase])
             self.current_counter = self.phase_cycle[self.current_phase][1]
 
         self.update_timer_display()
@@ -223,7 +224,7 @@ class PomodoroModule(UserControl):
         self.start_stop_button.update()
 
     def apply_settings(self, args=None):
-        self.verbose()
+        verbose(self.debug,)
 
         self.focus_time = int(self.focus_period_field.value) * 60
         self.short_break_time = int(self.short_break_field.value) * 60
@@ -242,7 +243,7 @@ class PomodoroModule(UserControl):
         self.module_name_phase_cycle.update()
 
     def validate_input(self, e):
-        self.verbose()
+        verbose(self.debug,)
 
         def try_convert_to_int(item):
             try:
@@ -258,17 +259,17 @@ class PomodoroModule(UserControl):
         ]
         all_integers = [try_convert_to_int(item) for item in field_value_list]
 
-        self.verbose(f'Items list -> {field_value_list}')
-        self.verbose(f'Check if all integers -> {all_integers}')
+        verbose(self.debug, f'Items list -> {field_value_list}')
+        verbose(self.debug, f'Check if all integers -> {all_integers}')
 
         if False in all_integers:
-            self.verbose('Invalid Input')
+            verbose(self.debug, 'Invalid Input')
             self.page.banner.open = True
             self.apply_setting_button.disabled = True
             self.apply_setting_button.update()
             self.page.banner.update()
         else:
-            self.verbose('Valid Input')
+            verbose(self.debug, 'Valid Input')
             self.page.banner.open = False
             self.apply_setting_button.disabled = False
             self.apply_setting_button.update()
@@ -276,14 +277,14 @@ class PomodoroModule(UserControl):
 
     # Functions - Pomodoro Timer
     def start_stop_timer(self, e):
-        self.verbose(f'From: {self.is_running}')
+        verbose(self.debug, f'From: {self.is_running}')
         self.is_running = not self.is_running
         e.control.text = 'Stop' if self.is_running else 'Start'
         self.update()
-        self.verbose(f'To: {self.is_running}')
+        verbose(self.debug, f'To: {self.is_running}')
 
     def update_timer_display(self):
-        # self.verbose(
+        # verbose(self.debug,
         #     f'Current counter -> {self.current_counter}', True)
         self.display_mins.value, self.display_secs.value = divmod(
             self.current_counter, 60)
@@ -292,7 +293,7 @@ class PomodoroModule(UserControl):
         self.update()
 
     def run_timer(self):
-        self.verbose()
+        verbose(self.debug,)
         while self.update_ui:
             if self.is_running:
                 if self.current_counter > 0:
@@ -301,14 +302,14 @@ class PomodoroModule(UserControl):
                 else:
                     if self.phase_cycle[self.current_phase][0] == 'Focus':
                         self.focus_counter += 1
-                        self.verbose(
-                            f'Focus Period Complete! -> Current Focus Streak [{self.focus_counter}]')
+                        verbose(self.debug,
+                                f'Focus Period Complete! -> Current Focus Streak [{self.focus_counter}]')
                     self.switch_phase()
                 self.update_timer_display()
             time.sleep(self.update_time())
 
     def update_button_states(self):
-        self.verbose()
+        verbose(self.debug,)
         focus_active = self.current_phase_name.value == 'Focus'
         short_break_active = self.current_phase_name.value == 'Short Break'
         long_break_active = self.current_phase_name.value == 'Long Break'
@@ -319,8 +320,8 @@ class PomodoroModule(UserControl):
         self.update()
 
     def switch_phase(self):
-        self.verbose(
-            f'From: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
+        verbose(self.debug,
+                f'From: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
 
         self.current_phase += 1
 
@@ -334,8 +335,8 @@ class PomodoroModule(UserControl):
 
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
-            self.verbose(
-                f'To: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
+            verbose(self.debug,
+                    f'To: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
         elif self.current_phase == len(self.phase_cycle):
             self.cycle_focus_position = 1
             self.current_phase = 0
@@ -343,21 +344,21 @@ class PomodoroModule(UserControl):
             self.current_counter = self.phase_cycle[self.current_phase][1]
             self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
             self.module_name_phase_cycle.update()
-            self.verbose(
-                f'Restarting cycle to: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
+            verbose(self.debug,
+                    f'Restarting cycle to: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
         self.update()
         self.update_button_states()
         self.play_beep()
 
     def set_phase_cycle(self, e):
-        self.verbose(f'Button clicked: {e.control.text}')
-        # self.verbose(
+        verbose(self.debug, f'Button clicked: {e.control.text}')
+        # verbose(self.debug,
         #     f'Set current phase name from: {self.current_phase_name.value}')
-        # self.verbose(f'Set current counter from: {self.current_counter}')
-        # self.verbose(f'Set current phase from: {self.current_phase}')
+        # verbose(self.debug,f'Set current counter from: {self.current_counter}')
+        # verbose(self.debug,f'Set current phase from: {self.current_phase}')
 
         def set_phase(phase_name):
-            self.verbose(f'{phase_name}')
+            verbose(self.debug, f'{phase_name}')
             for phase in self.phase_cycle:
                 if phase[0] == phase_name:
                     self.current_phase_name.value = phase_name
@@ -373,10 +374,10 @@ class PomodoroModule(UserControl):
                     self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
                     self.module_name_phase_cycle.update()
                     break
-            # self.verbose(
+            # verbose(self.debug,
             #     f'Set current phase name to: {self.current_phase_name.value}')
-            # self.verbose(f'Set current counter to: {self.current_counter}')
-            # self.verbose(f'Set current phase to: {self.current_phase}')
+            # verbose(self.debug,f'Set current counter to: {self.current_counter}')
+            # verbose(self.debug,f'Set current phase to: {self.current_phase}')
 
         # Determine which button was clicked and set the phase accordingly
         if e.control.text == 'Focus':
@@ -386,36 +387,36 @@ class PomodoroModule(UserControl):
         elif e.control.text == 'Long Break':
             set_phase('Long Break')
         else:
-            self.verbose('Unknown button clicked')
+            verbose(self.debug, 'Unknown button clicked')
 
     # Functions - Build
     def SettingsDisplay(self):
-        self.verbose()
+        verbose(self.debug,)
 
         # Creating functions needed to interact
         def close_banner(e):
-            self.verbose()
+            verbose(self.debug,)
             self.page.banner.open = False
             self.page.update()
 
         # Creating close settings function
         def close_settings(e):
-            self.verbose()
+            verbose(self.debug,)
             self.settings_bottom_sheet.open = False
             self.settings_bottom_sheet.update()
 
         def close_settings_button_configs():
-            self.verbose()
+            verbose(self.debug,)
             self.close_settings_button.icon = icons.CLOSE
             self.close_settings_button.on_click = close_settings
 
         def apply_settings_buttons_config():
-            self.verbose()
+            verbose(self.debug,)
             self.apply_setting_button.on_click = self.apply_settings
             self.apply_setting_button.style = self.button_style
 
         def valdation_banner_config():
-            self.verbose()
+            verbose(self.debug,)
             self.validation_banner.content = Text(
                 'Only use numbers in the settings field.',
                 color=colors.BLACK)
@@ -427,7 +428,7 @@ class PomodoroModule(UserControl):
                 icons.WARNING_AMBER_ROUNDED, color=colors.AMBER, size=40)
 
         def settings_text_fields_config():
-            self.verbose()
+            verbose(self.debug,)
             self.focus_period_field.label = 'Focus Period'
             self.short_break_field.label = 'Short Break'
             self.long_break_field.label = 'Long Break'
@@ -447,13 +448,13 @@ class PomodoroModule(UserControl):
             self.reset_settings_button.style = self.button_style
 
         def assemble_settings_container():
-            self.verbose()
+            verbose(self.debug,)
 
             settings_column = Column()
             close_settings_row = Row()
             settings_buttons_row = Row()
             settings_text = Text('Pomodoro Settings',
-                                 style=TextThemeStyle.LABEL_SMALL)
+                                 theme_style=TextThemeStyle.LABEL_SMALL)
 
             # Settings column configuration
             settings_column.alignment = MainAxisAlignment.START
@@ -508,15 +509,15 @@ class PomodoroModule(UserControl):
         return assemble_settings_container()
 
     def PomodoroDisplay(self):
-        self.verbose()
+        verbose(self.debug,)
 
         def show_settings(e):
-            self.verbose()
+            verbose(self.debug,)
             self.settings_bottom_sheet.open = True
             self.settings_bottom_sheet.update()
 
         def phase_buttons():
-            self.verbose()
+            verbose(self.debug,)
             self.set_focus_button.on_click = self.set_phase_cycle
             self.set_short_break_button.on_click = self.set_phase_cycle
             self.set_long_break_button.on_click = self.set_phase_cycle
@@ -539,7 +540,7 @@ class PomodoroModule(UserControl):
             return self.phase_buttons_container
 
         def timer_display():
-            self.verbose()
+            verbose(self.debug,)
             # Display Mins properties
             self.display_mins.theme_style = TextThemeStyle.DISPLAY_LARGE
 
@@ -578,7 +579,7 @@ class PomodoroModule(UserControl):
             return column
 
         def final_timer_display():
-            self.verbose()
+            verbose(self.debug,)
             # Open Setting Button setup
             self.open_settings_button.on_click = show_settings
 
@@ -633,7 +634,7 @@ class PomodoroModule(UserControl):
 
     def build(self):
         self.page.banner = self.validation_banner
-        self.verbose()
+        verbose(self.debug,)
         self.SettingsDisplay()
         self.page.overlay.append(self.settings_bottom_sheet)
         self.page.overlay.append(self.beep)
