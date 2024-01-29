@@ -4,7 +4,6 @@ import time
 import threading
 import inspect
 import sys
-import pygame
 
 
 class PomodoroModule(UserControl):
@@ -87,8 +86,9 @@ class PomodoroModule(UserControl):
         self.observers = []
 
         # Sound assets
-        pygame.init()
-        self.sound = pygame.mixer.Sound(r'..\assets\beep beep beep.mp3')
+        self.beep = Audio(
+            src=r'..\assets\beep beep beep.mp3',
+        )
 
         self.print_attributes()
 
@@ -149,7 +149,7 @@ class PomodoroModule(UserControl):
 
     # Sound function
     def play_beep(self):
-        self.sound.play()
+        self.beep.play()
 
     # Functions - Observer
     def register_observer(self, observer):
@@ -404,7 +404,7 @@ class PomodoroModule(UserControl):
             self.settings_bottom_sheet.open = False
             self.settings_bottom_sheet.update()
 
-        def settings_button_configs():
+        def close_settings_button_configs():
             self.verbose()
             self.close_settings_button.icon = icons.CLOSE
             self.close_settings_button.on_click = close_settings
@@ -432,6 +432,11 @@ class PomodoroModule(UserControl):
             self.short_break_field.label = 'Short Break'
             self.long_break_field.label = 'Long Break'
             self.cycle_lenght_field.label = 'Focus before Long Break'
+
+            self.focus_period_field.width = 325
+            self.short_break_field.width = 325
+            self.long_break_field.width = 325
+            self.cycle_lenght_field.width = 325
 
             self.focus_period_field.on_change = self.validate_input
             self.short_break_field.on_change = self.validate_input
@@ -470,6 +475,7 @@ class PomodoroModule(UserControl):
                 settings_text,
                 self.close_settings_button
             ]
+            close_settings_row.width = 325
 
             # Settings button row configurations
             settings_buttons_row.alignment = MainAxisAlignment.END
@@ -477,9 +483,10 @@ class PomodoroModule(UserControl):
                 self.apply_setting_button,
                 self.reset_settings_button
             ]
+            settings_buttons_row.width = 325
 
             # Running assets configuration
-            settings_button_configs()
+            close_settings_button_configs()
             apply_settings_buttons_config()
             valdation_banner_config()
             settings_text_fields_config()
@@ -488,6 +495,7 @@ class PomodoroModule(UserControl):
             self.settings_container.content = settings_column
             self.settings_container.padding = 20
             self.settings_container.width = 400
+            # self.settings_container.padding = padding.only(right=40)
 
             self.settings_bottom_sheet.content = self.settings_container
             self.settings_bottom_sheet.maintain_bottom_view_insets_padding = True
@@ -628,6 +636,8 @@ class PomodoroModule(UserControl):
         self.verbose()
         self.SettingsDisplay()
         self.page.overlay.append(self.settings_bottom_sheet)
+        self.page.overlay.append(self.beep)
+
         return self.PomodoroDisplay()
 
 
@@ -635,6 +645,8 @@ def main(page: Page):
     page.title = 'Pomodoro Module'
     page.horizontal_alignment = 'center'
     page.vertical_alignment = 'center'
+    page.window_height = 600
+    page.window_width = 400
     # page.bgcolor = colors.WHITE
 
     print('\n\n\n\n__________Instatiating Pomodoro Module__________')

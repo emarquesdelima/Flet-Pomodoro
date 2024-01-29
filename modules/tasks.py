@@ -6,6 +6,9 @@ class TasksModule():
         print('\n___Starting Tasks Module__________________________')
         super().__init__()
 
+    def build(self):
+        pass
+
 
 def main(page: Page):
     page.title = 'Tasks'
