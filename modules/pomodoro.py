@@ -2,8 +2,6 @@ from flet import *
 from datetime import datetime
 import time
 import threading
-import inspect
-import sys
 from utility import verbose
 
 
@@ -25,8 +23,8 @@ class PomodoroModule(UserControl):
         self.current_counter = self.phase_cycle[self.current_phase][1]
         self.is_running = False
         self.update_ui = True
-        self.focus_counter = 0
         self.cycle_focus_position = 1
+        self.focus_counter = []
 
         # UI Itens - Settings
         self.focus_period_field = TextField(value=int(self.focus_time / 60))
@@ -165,7 +163,7 @@ class PomodoroModule(UserControl):
     def notify_observers(self):
         verbose(self.debug,)
         for observer in self.observers:
-            observer.obs_update(self)
+            observer.observer_update(self)
 
     # Functions - Settings
 
@@ -283,6 +281,21 @@ class PomodoroModule(UserControl):
         self.update()
         verbose(self.debug, f'To: {self.is_running}')
 
+    def data_storage(self):
+        verbose(self.debug, 'Starting data storage')
+        timestamp = datetime.now()
+
+        # Create a shallow copy of the current phase's data
+        data_list = list(self.phase_cycle[self.current_phase])
+
+        # Append the timestamp to the copied list
+        data_list.append(timestamp)
+
+        verbose(self.debug, f'Data to append -> {data_list}')
+
+        # Append the modified copy to self.focus_counter
+        self.focus_counter.append(data_list)
+
     def update_timer_display(self):
         # verbose(self.debug,
         #     f'Current counter -> {self.current_counter}', True)
@@ -301,9 +314,8 @@ class PomodoroModule(UserControl):
                     self.current_counter -= 1
                 else:
                     if self.phase_cycle[self.current_phase][0] == 'Focus':
-                        self.focus_counter += 1
                         verbose(self.debug,
-                                f'Focus Period Complete! -> Current Focus Streak [{self.focus_counter}]')
+                                f'Focus Period Complete! -> Current Focus Streak [{len(self.focus_counter)}]')
                     self.switch_phase()
                 self.update_timer_display()
             time.sleep(self.update_time())
@@ -323,6 +335,8 @@ class PomodoroModule(UserControl):
         verbose(self.debug,
                 f'From: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
 
+        self.data_storage()
+        self.notify_observers()
         self.current_phase += 1
 
         if self.current_phase < len(self.phase_cycle):
@@ -331,7 +345,6 @@ class PomodoroModule(UserControl):
 
                 self.module_name_phase_cycle.value = f'Pomodoro - {self.cycle_focus_position}/{self.cycle_lenght}'
                 self.module_name_phase_cycle.update()
-                self.notify_observers()
 
             self.current_phase_name.value = self.phase_cycle[self.current_phase][0]
             self.current_counter = self.phase_cycle[self.current_phase][1]
