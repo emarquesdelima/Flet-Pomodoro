@@ -164,6 +164,7 @@ class PomodoroModule(UserControl):
         verbose(self.debug,)
         for observer in self.observers:
             observer.observer_update(self)
+            observer.observer_update(self)
 
     # Functions - Settings
 
@@ -335,6 +336,8 @@ class PomodoroModule(UserControl):
         verbose(self.debug,
                 f'From: {self.current_phase} - {self.phase_cycle[self.current_phase][0]}')
 
+        self.data_storage()
+        self.notify_observers()
         self.data_storage()
         self.notify_observers()
         self.current_phase += 1
