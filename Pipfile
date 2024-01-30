@@ -7,6 +7,7 @@ name = "pypi"
 flet = "*"
 pygame = "*"
 mysql-connector-python = "*"
+pyinstaller = "*"
 
 [dev-packages]
 
