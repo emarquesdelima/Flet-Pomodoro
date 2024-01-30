@@ -12,15 +12,10 @@ This application is a dynamic task tracker integrated with a built-in Pomodoro t
 - **Customization:** Options to customize timer settings to suit individual preferences.
 
 ## Installation and Setup
-To run the application, ensure you have Python installed on your system. Follow these steps:
-1. Clone the repository to your local machine.
-2. Install the required dependencies.
-3. Run `main.py` to start the application.
+Right now only the pomodoro module is available as an .exe file. You can find it at distribution\Pomodoro-Standalone\Build Output as pomodoro_standalone.exe
 
 ## Usage
-- Start the application and navigate through the interface to access the task tracker, Pomodoro timer, or stopwatch.
-- Add tasks, start the timer, and track your productivity.
-- Customize settings as per your needs.
+Run the .exe file and you will have a functional pomodoro timer to use
 
 ## Ongoing Development
 This project is an ongoing endeavor, with future updates planned to enhance functionality and user experience. Contributions and suggestions are welcome.
