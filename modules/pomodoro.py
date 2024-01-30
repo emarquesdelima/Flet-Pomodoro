@@ -1,4 +1,8 @@
-from flet import *
+from flet import (Page, app, UserControl, TextField, OutlinedButton,
+                  IconButton, Banner, icons, Container, BottomSheet, Text,
+                  Row, Column, ButtonStyle, RoundedRectangleBorder, MaterialState,
+                  colors, Audio, TextButton, Icon, TextThemeStyle, MainAxisAlignment,
+                  CrossAxisAlignment, ScrollMode, TextAlign, Divider, alignment)
 from datetime import datetime
 import time
 import threading
@@ -623,7 +627,7 @@ class PomodoroModule(UserControl):
             self.module_name_phase_cycle.theme_style = TextThemeStyle.LABEL_SMALL
             self.module_name_phase_cycle.text_align = TextAlign.CENTER
 
-            Divider
+            # Divider
 
             col.controls = [
                 self.module_name_phase_cycle,
