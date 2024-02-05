@@ -15,7 +15,8 @@ This application is a dynamic task tracker integrated with a built-in Pomodoro t
 Right now only the pomodoro module is available as an .exe file. You can find it at distribution\Pomodoro-Standalone\Build Output as pomodoro_standalone.exe
 
 ## Usage
-Run the .exe file and you will have a functional pomodoro timer to use
+1- Copy the Flet-Pomodoro\distribution\Pomodoro-Standalone\Instalation Files folder
+2- Run the .exe file and you will have a functional pomodoro timer to use
 
 ## Ongoing Development
 This project is an ongoing endeavor, with future updates planned to enhance functionality and user experience. Contributions and suggestions are welcome.
